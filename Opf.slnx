@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Opf.Cli/Opf.Cli.csproj" />
+  <Project Path="Opf.Core/Opf.Core.csproj" />
+  <Project Path="Opf.Tests/Opf.Tests.csproj" />
+</Solution>
