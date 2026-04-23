@@ -1,0 +1,28 @@
+# TODO
+
+- [ ] Create `AGENTS.md`
+- [ ] Create `TODO.md`
+- [ ] Create `WIP.md`
+- [ ] Create `.gitignore`
+- [ ] Create `README.md`
+- [ ] Initialize Solution and Projects
+- [ ] Core: ModelConfig
+- [ ] Core: RMSNorm
+- [ ] Core: RotaryEmbedding
+- [ ] Core: AttentionBlock
+- [ ] Core: MLPBlock
+- [ ] Core: TransformerBlock
+- [ ] Core: Transformer
+- [ ] Core: SafeTensors loading
+- [ ] Core: Checkpoint Download
+- [ ] Core: Viterbi Decoder
+- [ ] Core: Spans and Decoding Logic
+- [ ] Core: InferenceRuntime
+- [ ] Python Script to generate artifacts
+- [ ] Instrument Python code to dump artifacts
+- [ ] Unit Tests: RMSNorm
+- [ ] Unit Tests: AttentionBlock
+- [ ] Unit Tests: MLPBlock
+- [ ] Unit Tests: ViterbiCRFDecoder
+- [ ] Unit Tests: End-to-end
+- [ ] Console CLI

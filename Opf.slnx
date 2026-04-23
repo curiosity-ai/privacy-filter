@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Opf.Console/Opf.Console.csproj" />
+    <Project Path="src/Opf.Core/Opf.Core.csproj" />
+    <Project Path="src/Opf.Tests/Opf.Tests.csproj" />
+  </Folder>
+</Solution>
