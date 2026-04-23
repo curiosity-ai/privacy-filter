@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.ML.Tokenizers;
 
 namespace Opf.Core.Tokenization;
@@ -11,22 +13,33 @@ public class OpfTokenizer
 
     public OpfTokenizer(string directoryPath)
     {
-        string tokenizerJsonPath = Path.Combine(directoryPath, "tokenizer.json");
-        if (!File.Exists(tokenizerJsonPath))
+        string configJsonPath = Path.Combine(directoryPath, "config.json");
+        if (!File.Exists(configJsonPath))
         {
-            throw new FileNotFoundException($"Tokenizer config not found at {tokenizerJsonPath}");
+            throw new FileNotFoundException($"Checkpoint config not found at {configJsonPath}");
         }
 
-        // We can use CreateForEncoding or CreateForModel for cl100k_base or o200k_base
-        // Let's use the stream approach with Create
-        // But since this is a model similar to gpt-oss it likely uses cl100k_base or o200k_base.
-        // Let's create it from TiktokenTokenizer.CreateForEncoding("cl100k_base", null, null)
-        // Privacy filter uses o200k_base based on tokenizer.json (we can verify but TiktokenCreateForModel is fine for now)
-        _tokenizer = TiktokenTokenizer.CreateForModel("gpt-4o", null, null);
+        string configContent = File.ReadAllText(configJsonPath);
+        var configJson = JsonNode.Parse(configContent);
+        string? encodingName = configJson?["encoding"]?.ToString();
+        if (string.IsNullOrEmpty(encodingName))
+        {
+            throw new InvalidOperationException("Checkpoint config field encoding must be a non-empty string");
+        }
+
+        _tokenizer = TiktokenTokenizer.CreateForEncoding(encodingName, null, null);
+        EotTokenId = _tokenizer.EncodeToIds("<|endoftext|>", considerPreTokenization: true, considerNormalization: true).FirstOrDefault();
     }
 
     public int[] Encode(string text)
     {
         return _tokenizer.EncodeToIds(text).ToArray();
     }
+
+    public string Decode(int[] tokenIds)
+    {
+        return _tokenizer.Decode(tokenIds);
+    }
+
+    public int EotTokenId { get; }
 }

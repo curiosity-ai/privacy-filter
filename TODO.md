@@ -5,7 +5,7 @@
 - [ ] Initialize .NET solution and projects (Core, Console, Tests).
 - [ ] Create HuggingFace downloader to fetch `openai/privacy-filter`.
 - [ ] Implement `Safetensors` loader in C# to parse `model.safetensors` / MXFP4 files.
-- [ ] Implement Tokenizer (Tiktoken / BPE logic).
+- [x] Implement Tokenizer (Tiktoken / BPE logic).
 - [ ] Implement Tensor operations wrapper using `System.Numerics.Tensors` / SIMD.
 - [ ] Implement Transformer model architecture in C#:
   - [ ] Embeddings
