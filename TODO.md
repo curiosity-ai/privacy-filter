@@ -1,16 +1,16 @@
 # TODO
 
-- [ ] Create `.gitignore` for .NET.
-- [ ] Create `README.md` outlining the C# project.
-- [ ] Initialize .NET solution and projects (Core, Console, Tests).
-- [ ] Create HuggingFace downloader to fetch `openai/privacy-filter`.
-- [ ] Implement `Safetensors` loader in C# to parse `model.safetensors` / MXFP4 files.
-- [ ] Implement Tokenizer (Tiktoken / BPE logic).
+- [x] Create `.gitignore` for .NET.
+- [x] Create `README.md` outlining the C# project.
+- [x] Initialize .NET solution and projects (Core, Console, Tests).
+- [x] Create HuggingFace downloader to fetch `openai/privacy-filter`.
+- [x] Implement `Safetensors` loader in C# to parse `model.safetensors` / MXFP4 files.
+- [x] Implement Tokenizer (Tiktoken / BPE logic).
 - [ ] Implement Tensor operations wrapper using `System.Numerics.Tensors` / SIMD.
 - [ ] Implement Transformer model architecture in C#:
   - [ ] Embeddings
   - [ ] Grouped Query Attention (GQA)
-  - [ ] RoPE (Rotary Positional Embeddings)
+  - [x] RoPE (Rotary Positional Embeddings)
   - [ ] Sparse Mixture of Experts (MoE) implementation
   - [ ] RMSNorm
 - [ ] Implement Model inference pass (logits generation).
