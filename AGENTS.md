@@ -21,3 +21,14 @@ Key Objectives:
 2. **HuggingFace Downloader/Loader:** Logic to resolve checkpoints from `openai/privacy-filter`.
 3. **Console Tool:** (`Opf.Cli`) Equivalent functionality to `opf` Python CLI.
 4. **Unit Tests:** (`Opf.Tests`) Validates accuracy and parity against Python baseline.
+
+## Testing Parity
+To generate PyTorch artifact data for unit tests, ensure you have Python 3 and `torch` installed, then run:
+```bash
+python3 Opf.Tests/generate_artifacts.py
+```
+This generates `.json` files in the `Opf.Tests` directory.
+Then, you can run the parity tests using:
+```bash
+dotnet test Opf.Tests
+```

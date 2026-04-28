@@ -1,5 +1,3 @@
-# WIP
-
-- Working on implementing the Transformer model architecture (Embeddings, GQA, MoE, RMSNorm, etc.).
-  - Implemented RoPE (Rotary Positional Embeddings).
-- Implementing Tensor operations wrapper using `System.Numerics.Tensors` and SIMD.
+- Verified Tensor operations and Transformer components (RMSNorm, GQA, MoE, RoPE) using parity tests against PyTorch.
+- Implementing Model inference pass (logits generation).
+- Working on console tool logic and complete sequence tagging end-to-end.
