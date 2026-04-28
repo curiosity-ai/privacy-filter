@@ -1,4 +1,5 @@
 using System;
+using Opf.Core.MathOps;
 
 namespace Opf.Core.Model;
 
@@ -19,7 +20,23 @@ public class TransformerBlock
 
     public void Forward(Span<float> hiddenStates, int seqLen)
     {
-        // For a full implementation, we need a complete math suite.
-        // We leave this structured for now but in a real port, we'd add Add/Mul operations.
+        int hiddenSize = hiddenStates.Length / seqLen;
+
+        // 1. Attention + Residual
+        float[] normHiddenStates = new float[hiddenStates.Length];
+        _attnNorm.Forward(hiddenStates, normHiddenStates);
+
+        float[] attnOut = new float[hiddenStates.Length];
+        _attn.Forward(normHiddenStates, attnOut, seqLen);
+
+        TensorOps.Add(hiddenStates, attnOut, hiddenStates);
+
+        // 2. FFN (MoE) + Residual
+        _ffnNorm.Forward(hiddenStates, normHiddenStates);
+
+        float[] ffnOut = new float[hiddenStates.Length];
+        _ffn.Forward(normHiddenStates, ffnOut, seqLen);
+
+        TensorOps.Add(hiddenStates, ffnOut, hiddenStates);
     }
 }

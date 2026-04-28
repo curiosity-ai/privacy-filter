@@ -35,9 +35,10 @@ public static class TensorOps
 
     public static void Matmul(ReadOnlySpan<float> a, ReadOnlySpan<float> b, Span<float> c, int m, int k, int n)
     {
-        // Simple dense matmul: C = A * B
+        // Dense matmul: C = A * B
         // A is [M, K], B is [K, N], C is [M, N]
-        // This is a naive implementation; for production, use a BLAS library or optimized SIMD blocks.
+        // NOTE: We assume 'b' is row-major. For better performance 'b' should be transposed beforehand.
+        // Doing this synchronously because Span<float> cannot be captured in a lambda expression.
         for (int i = 0; i < m; i++)
         {
             for (int j = 0; j < n; j++)
@@ -45,11 +46,31 @@ public static class TensorOps
                 float sum = 0f;
                 for (int l = 0; l < k; l++)
                 {
-                    sum += a[i * k + l] * b[l * n + j]; // Assuming B is also row-major
+                    sum += a[i * k + l] * b[l * n + j];
                 }
                 c[i * n + j] = sum;
             }
         }
+    }
+
+    public static void Add(ReadOnlySpan<float> a, ReadOnlySpan<float> b, Span<float> c)
+    {
+        TensorPrimitives.Add(a, b, c);
+    }
+
+    public static void Add(ReadOnlySpan<float> a, float b, Span<float> c)
+    {
+        TensorPrimitives.Add(a, b, c);
+    }
+
+    public static void Multiply(ReadOnlySpan<float> a, float b, Span<float> c)
+    {
+        TensorPrimitives.Multiply(a, b, c);
+    }
+
+    public static void Multiply(ReadOnlySpan<float> a, ReadOnlySpan<float> b, Span<float> c)
+    {
+        TensorPrimitives.Multiply(a, b, c);
     }
 
     public static void SwiGLU(Span<float> x, Span<float> y, Span<float> output)
