@@ -1,3 +1,4 @@
 - Verified Tensor operations and Transformer components (RMSNorm, GQA, MoE, RoPE) using parity tests against PyTorch.
-- Implementing Model inference pass (logits generation).
-- Working on console tool logic and complete sequence tagging end-to-end.
+- Implemented Model inference pass (logits generation) and MXFP4 Unquantizer logic.
+- Implemented binary tensor reading in SafetensorsLoader.
+- Next steps: build the model weight mapping parsing logic and construct the final model, then complete sequence tagging end-to-end in the CLI.
