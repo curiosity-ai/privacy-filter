@@ -40,7 +40,7 @@ public class TransformerModel
         // Classifier projection
         float[] logits = new float[seqLen * _numClasses];
         // Full port requires Matmul here
-        // MathOps.TensorOps.Matmul(normHiddenStates, _classifierWeight, logits, seqLen, _hiddenSize, _numClasses);
+        MathOps.TensorOps.Matmul(normHiddenStates, _classifierWeight, logits, seqLen, _hiddenSize, _numClasses);
 
         return logits;
     }

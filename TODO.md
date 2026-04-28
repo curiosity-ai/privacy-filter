@@ -13,7 +13,7 @@
   - [x] RoPE (Rotary Positional Embeddings)
   - [x] Sparse Mixture of Experts (MoE) implementation
   - [x] RMSNorm
-- [ ] Implement Model inference pass (logits generation).
+- [x] Implement Model inference pass (logits generation).
 - [x] Implement Sequence Decoding (Viterbi span decoder).
 - [x] Implement Python verification scripts (dump Python intermediates for testing).
 - [x] Create tests to ensure output parity with Python implementation.
