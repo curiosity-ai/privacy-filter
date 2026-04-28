@@ -14,7 +14,7 @@ public class SafetensorMetadata
 
 public class SafetensorsLoader
 {
-    private readonly Dictionary<string, (string FilePath, SafetensorMetadata Meta)> _tensors = new();
+    private readonly Dictionary<string, (string FilePath, SafetensorMetadata Meta, long HeaderLength)> _tensors = new();
 
     public SafetensorsLoader(string directoryPath)
     {
@@ -45,7 +45,7 @@ public class SafetensorsLoader
                 var meta = kvp.Value.Deserialize<SafetensorMetadata>(options);
                 if (meta != null)
                 {
-                    _tensors[kvp.Key] = (filePath, meta);
+                    _tensors[kvp.Key] = (filePath, meta, headerLength);
                 }
             }
         }
@@ -53,12 +53,33 @@ public class SafetensorsLoader
 
     public bool HasTensor(string name) => _tensors.ContainsKey(name);
 
-    public (string FilePath, SafetensorMetadata Meta) GetTensorMetadata(string name)
+    public (string FilePath, SafetensorMetadata Meta, long HeaderLength) GetTensorMetadata(string name)
     {
         if (_tensors.TryGetValue(name, out var data))
         {
             return data;
         }
         throw new KeyNotFoundException($"Tensor {name} not found.");
+    }
+
+    public byte[] GetTensorBytes(string name)
+    {
+        var data = GetTensorMetadata(name);
+
+        long startOffset = 8 + data.HeaderLength + data.Meta.Data_offsets[0];
+        long length = data.Meta.Data_offsets[1] - data.Meta.Data_offsets[0];
+
+        byte[] buffer = new byte[(int)length];
+
+        using var fs = new FileStream(data.FilePath, FileMode.Open, FileAccess.Read);
+        fs.Seek(startOffset, SeekOrigin.Begin);
+        int bytesRead = fs.Read(buffer, 0, (int)length);
+
+        if (bytesRead != length)
+        {
+            throw new IOException($"Expected {length} bytes but read {bytesRead} for tensor {name}");
+        }
+
+        return buffer;
     }
 }

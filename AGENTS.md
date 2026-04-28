@@ -34,5 +34,5 @@ dotnet test Opf.Tests
 ```
 
 ## Hints for Future Steps
-- Safetensors metadata parsing is complete, but loading tensor data and interpreting weights needs to be finalized. `SafetensorsLoader` can be extended to read raw binary data based on byte offsets.
-- MXFP4 Unquantizer is implemented but still needs to be wired into the weights loading process, especially reading scaling factors correctly.
+- Safetensors binary parsing and MXFP4 Unquantizer logic are implemented.
+- These need to be integrated into a Model Factory that reads the mapped weights, applies unquantization, and dynamically constructs the `TransformerModel`. Look at `model.py` and `weights.py` in the python reference to construct parameters mapped back to the loaded tensors.
