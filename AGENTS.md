@@ -34,5 +34,5 @@ dotnet test Opf.Tests
 ```
 
 ## Hints for Future Steps
-- Safetensors binary parsing and MXFP4 Unquantizer logic are implemented.
-- These need to be integrated into a Model Factory that reads the mapped weights, applies unquantization, and dynamically constructs the `TransformerModel`. Look at `model.py` and `weights.py` in the python reference to construct parameters mapped back to the loaded tensors.
+- The core porting logic, including Tensors, Transformer blocks, ModelFactory mapped weights parsing, MXFP4 unquantizing, and CLI end-to-end inference flow have been completed.
+- Future steps can involve performance improvements in tensor math routines, optimizing memory allocations, or fleshing out the redaction logic directly in the output stream based on tag spans.

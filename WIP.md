@@ -1,4 +1,6 @@
 - Verified Tensor operations and Transformer components (RMSNorm, GQA, MoE, RoPE) using parity tests against PyTorch.
 - Implemented Model inference pass (logits generation) and MXFP4 Unquantizer logic.
 - Implemented binary tensor reading in SafetensorsLoader.
-- Next steps: build the model weight mapping parsing logic and construct the final model, then complete sequence tagging end-to-end in the CLI.
+- Built ModelFactory logic to parse config, read bytes with SafetensorsLoader, apply Mxfp4Unquantizer, and construct the TransformerModel.
+- Finished connecting end-to-end tokenization, model inference, and CRF decoding within the CLI.
+- Next steps: Clean up any console app logic as needed, implement custom text redaction algorithms replacing tokens based on generated tags, ensure the performance is fully optimized for pure CPU usage.

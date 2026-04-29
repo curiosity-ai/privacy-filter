@@ -25,10 +25,24 @@ class Program
             var tokens = tokenizer.Encode(text);
 
             Console.WriteLine($"Tokens encoded: {tokens.Length}");
-            // Skipping model execution as full architecture port with weights mapping requires more deep implementation of MXFP4,
-            // but the pipeline is structured and connected.
 
-            Console.WriteLine("Redaction completed (Stub).");
+            Console.WriteLine("Loading model weights...");
+            var (model, decoder) = Opf.Core.Model.ModelFactory.LoadFromDirectory(modelPath);
+
+            Console.WriteLine("Running inference...");
+            float[] logits = model.Forward(tokens);
+
+            Console.WriteLine("Decoding sequence labels...");
+            int[] labels = decoder.Decode(logits, tokens.Length);
+
+            Console.WriteLine("Results:");
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                // Just output the token ID and the predicted label class for now
+                Console.WriteLine($"Token: {tokens[i]}, Label: {labels[i]}");
+            }
+
+            Console.WriteLine("Redaction completed.");
         }
         catch (Exception ex)
         {
