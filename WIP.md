@@ -1,4 +1,4 @@
-- Verified Tensor operations and Transformer components (RMSNorm, GQA, MoE, RoPE) using parity tests against PyTorch.
-- Implemented Model inference pass (logits generation) and MXFP4 Unquantizer logic.
-- Implemented binary tensor reading in SafetensorsLoader.
-- Next steps: build the model weight mapping parsing logic and construct the final model, then complete sequence tagging end-to-end in the CLI.
+- Implemented `ModelConfig` parser and `CheckpointLoader` (with proper MXFP4 unquantization and BF16 handling).
+- Implemented `TransformerModelFactory` to dynamically construct the full Transformer architecture and assign loaded checkpoint tensors.
+- Wired the `Opf.Cli` to execute text to tokens, run the forward Transformer pass to logits, and execute the Viterbi Decoder.
+- Next steps: Properly decode `viterbi_calibration.json` transition biases to construct the exact Viterbi Decoder state matching the Python model.

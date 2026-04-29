@@ -27,13 +27,10 @@ public class HuggingFaceDownloader
 
         string[] requiredFiles = {
             "config.json",
-            "model.safetensors.index.json",
-            "model-00001-of-00002.safetensors",
-            "model-00002-of-00002.safetensors",
+            "model.safetensors",
             "tokenizer.json",
             "tokenizer_config.json",
-            "vocab.json",
-            "merges.txt"
+            "viterbi_calibration.json"
         };
 
         foreach (var file in requiredFiles)
