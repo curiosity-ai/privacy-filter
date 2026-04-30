@@ -19,4 +19,4 @@
 - [x] Implement Python verification scripts (dump Python intermediates for testing).
 - [x] Create tests to ensure output parity with Python implementation.
 - [x] Implement Console App logic (redact text, read from stdin, etc.).
-- [ ] Connect Viterbi calibration biases in Console App decoding pass (read from `viterbi_calibration.json`).
+- [x] Connect Viterbi calibration biases in Console App decoding pass (read from `viterbi_calibration.json`).

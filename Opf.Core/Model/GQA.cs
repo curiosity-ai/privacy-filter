@@ -25,7 +25,7 @@ public class GroupedQueryAttention
         _hiddenSize = hiddenSize;
         _numHeads = numHeads;
         _numKvHeads = numKvHeads;
-        _headDim = hiddenSize / numHeads;
+        _headDim = (wq.Length / hiddenSize) / numHeads;
         _rope = rope;
     }
 
