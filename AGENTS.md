@@ -34,5 +34,5 @@ dotnet test Opf.Tests
 ```
 
 ## Hints for Future Steps
-- Safetensors binary parsing and MXFP4 Unquantizer logic are implemented.
-- These need to be integrated into a Model Factory that reads the mapped weights, applies unquantization, and dynamically constructs the `TransformerModel`. Look at `model.py` and `weights.py` in the python reference to construct parameters mapped back to the loaded tensors.
+- Safetensors binary parsing, Unquantizer logic, Viterbi calibration parsing, and end-to-end logic flow is now integrated and producing coherent tagging.
+- Performance optimization is highly suggested. Look into replacing `new float[]` array initializations in inner loops (like `Forward` inside `TransformerBlock`, `GQA`, `MoE`, and `RMSNorm`) with `ArrayPool<float>.Shared.Rent`, `Span<float>`, and pre-allocated buffer caches to reduce high garbage collection limits resulting from repeated tensor instantiations across layers.

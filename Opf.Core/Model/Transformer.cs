@@ -35,7 +35,12 @@ public class TransformerModel
         }
 
         float[] normHiddenStates = new float[seqLen * _hiddenSize];
-        _finalNorm.Forward(hiddenStates, normHiddenStates);
+        for (int t = 0; t < seqLen; t++)
+        {
+            var inSpan = hiddenStates.AsSpan(t * _hiddenSize, _hiddenSize);
+            var outSpan = normHiddenStates.AsSpan(t * _hiddenSize, _hiddenSize);
+            _finalNorm.Forward(inSpan, outSpan);
+        }
 
         // Classifier projection
         float[] logits = new float[seqLen * _numClasses];

@@ -23,6 +23,9 @@ public class ModelConfig
     [JsonPropertyName("num_key_value_heads")]
     public int NumKeyValueHeads { get; set; } = 2;
 
+    [JsonPropertyName("head_dim")]
+    public int HeadDim { get; set; } = 64;
+
     [JsonPropertyName("num_local_experts")]
     public int NumExperts { get; set; } = 128;
 
@@ -57,4 +60,13 @@ public class RopeParameters
 
     [JsonPropertyName("original_max_position_embeddings")]
     public int OriginalMaxPositionEmbeddings { get; set; } = 4096;
+
+    [JsonPropertyName("factor")]
+    public float Factor { get; set; } = 32.0f;
+
+    [JsonPropertyName("beta_slow")]
+    public float BetaSlow { get; set; } = 1.0f;
+
+    [JsonPropertyName("beta_fast")]
+    public float BetaFast { get; set; } = 32.0f;
 }

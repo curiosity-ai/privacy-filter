@@ -31,8 +31,9 @@ public class RotaryEmbedding
         _ntkBeta = ntkBeta;
 
         int maxPositions = (int)Math.Max(initialContextLength * scalingFactor, initialContextLength);
-        _cosCache = new float[maxPositions * (headDim / 2)];
-        _sinCache = new float[maxPositions * (headDim / 2)];
+        int halfDim = headDim / 2;
+        _cosCache = new float[maxPositions * halfDim];
+        _sinCache = new float[maxPositions * halfDim];
 
         ComputeCosSin(maxPositions);
     }
@@ -40,11 +41,12 @@ public class RotaryEmbedding
     private void ComputeCosSin(int numTokens)
     {
         float concentration = 1.0f;
-        float[] invFreq = new float[_headDim / 2];
+        int halfDim = _headDim / 2;
+        float[] invFreq = new float[halfDim];
 
-        for (int i = 0; i < _headDim; i += 2)
+        for (int i = 0; i < halfDim * 2; i += 2)
         {
-            invFreq[i / 2] = 1.0f / (float)Math.Pow(_baseFreq, (float)i / _headDim);
+            invFreq[i / 2] = 1.0f / (float)Math.Pow(_baseFreq, (float)i / (halfDim * 2));
         }
 
         if (_scalingFactor > 1.0f)

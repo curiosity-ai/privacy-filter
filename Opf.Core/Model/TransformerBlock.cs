@@ -24,7 +24,12 @@ public class TransformerBlock
 
         // 1. Attention + Residual
         float[] normHiddenStates = new float[hiddenStates.Length];
-        _attnNorm.Forward(hiddenStates, normHiddenStates);
+        for (int t = 0; t < seqLen; t++)
+        {
+            var inSpan = hiddenStates.Slice(t * hiddenSize, hiddenSize);
+            var outSpan = normHiddenStates.AsSpan(t * hiddenSize, hiddenSize);
+            _attnNorm.Forward(inSpan, outSpan);
+        }
 
         float[] attnOut = new float[hiddenStates.Length];
         _attn.Forward(normHiddenStates, attnOut, seqLen);
@@ -32,7 +37,12 @@ public class TransformerBlock
         TensorOps.Add(hiddenStates, attnOut, hiddenStates);
 
         // 2. FFN (MoE) + Residual
-        _ffnNorm.Forward(hiddenStates, normHiddenStates);
+        for (int t = 0; t < seqLen; t++)
+        {
+            var inSpan = hiddenStates.Slice(t * hiddenSize, hiddenSize);
+            var outSpan = normHiddenStates.AsSpan(t * hiddenSize, hiddenSize);
+            _ffnNorm.Forward(inSpan, outSpan);
+        }
 
         float[] ffnOut = new float[hiddenStates.Length];
         _ffn.Forward(normHiddenStates, ffnOut, seqLen);

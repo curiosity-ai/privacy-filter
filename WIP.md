@@ -1,4 +1,7 @@
 - Implemented `ModelConfig` parser and `CheckpointLoader` (with proper MXFP4 unquantization and BF16 handling).
 - Implemented `TransformerModelFactory` to dynamically construct the full Transformer architecture and assign loaded checkpoint tensors.
 - Wired the `Opf.Cli` to execute text to tokens, run the forward Transformer pass to logits, and execute the Viterbi Decoder.
-- Next steps: Properly decode `viterbi_calibration.json` transition biases to construct the exact Viterbi Decoder state matching the Python model.
+- Successfully parsed `viterbi_calibration.json` transition biases to construct the exact Viterbi Decoder state matching the Python model.
+- Fixed RoPE parameter assignments to match configuration metadata directly.
+- The pipeline now correctly and automatically classifies sequences, fully connected end-to-end.
+- Next steps: Code cleanup, performance optimization, refactoring to span bounds for output string slicing logic, adding token buffer caching to avoid massive CPU load.
