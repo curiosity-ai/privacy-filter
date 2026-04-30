@@ -20,3 +20,4 @@
 - [x] Create tests to ensure output parity with Python implementation.
 - [x] Implement Console App logic (redact text, read from stdin, etc.).
 - [x] Connect Viterbi calibration biases in Console App decoding pass (read from `viterbi_calibration.json`).
+- [x] Apply performance optimizations for buffer allocation (replace `new float[]` with `ArrayPool<float>`).

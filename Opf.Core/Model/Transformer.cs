@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 namespace Opf.Core.Model;
@@ -25,28 +26,43 @@ public class TransformerModel
     public float[] Forward(int[] inputIds)
     {
         int seqLen = inputIds.Length;
-        float[] hiddenStates = new float[seqLen * _hiddenSize];
+        var pool = ArrayPool<float>.Shared;
 
-        _embeddings.Forward(inputIds, hiddenStates);
-
-        foreach (var block in _blocks)
+        float[] hiddenStates = pool.Rent(seqLen * _hiddenSize);
+        try
         {
-            block.Forward(hiddenStates, seqLen);
-        }
+            _embeddings.Forward(inputIds, hiddenStates.AsSpan(0, seqLen * _hiddenSize));
 
-        float[] normHiddenStates = new float[seqLen * _hiddenSize];
-        for (int t = 0; t < seqLen; t++)
+            foreach (var block in _blocks)
+            {
+                block.Forward(hiddenStates.AsSpan(0, seqLen * _hiddenSize), seqLen);
+            }
+
+            float[] normHiddenStates = pool.Rent(seqLen * _hiddenSize);
+            try
+            {
+                for (int t = 0; t < seqLen; t++)
+                {
+                    var inSpan = hiddenStates.AsSpan(t * _hiddenSize, _hiddenSize);
+                    var outSpan = normHiddenStates.AsSpan(t * _hiddenSize, _hiddenSize);
+                    _finalNorm.Forward(inSpan, outSpan);
+                }
+
+                // Classifier projection
+                float[] logits = new float[seqLen * _numClasses]; // Returned to caller
+                // Full port requires Matmul here
+                MathOps.TensorOps.Matmul(normHiddenStates.AsSpan(0, seqLen * _hiddenSize), _classifierWeight, logits, seqLen, _hiddenSize, _numClasses);
+
+                return logits;
+            }
+            finally
+            {
+                pool.Return(normHiddenStates);
+            }
+        }
+        finally
         {
-            var inSpan = hiddenStates.AsSpan(t * _hiddenSize, _hiddenSize);
-            var outSpan = normHiddenStates.AsSpan(t * _hiddenSize, _hiddenSize);
-            _finalNorm.Forward(inSpan, outSpan);
+            pool.Return(hiddenStates);
         }
-
-        // Classifier projection
-        float[] logits = new float[seqLen * _numClasses];
-        // Full port requires Matmul here
-        MathOps.TensorOps.Matmul(normHiddenStates, _classifierWeight, logits, seqLen, _hiddenSize, _numClasses);
-
-        return logits;
     }
 }
