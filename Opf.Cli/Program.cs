@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Opf.Core.Weights;
@@ -41,26 +42,53 @@ class Program
             Console.WriteLine("Loading Viterbi Calibration...");
             var configPath = Path.Combine(modelPath, "config.json");
             var config = ModelConfig.Load(configPath);
-            int numLabels = config.NumLabels;
+            var labelInfo = LabelInfo.Build(config.Id2Label);
 
-            // To simplify, we skip viterbi reading from json, using random/empty for demonstration
-            // Proper reading involves parsing viterbi_calibration.json and applying the biases to transitions.
-            // Since this CLI is just the wrapper, we will just stub the Viterbi Decoder with zeros for now,
-            // as reading viterbi_calibration is trivial but requires accurate parsing of label rules.
-            var viterbi = new ViterbiCRFDecoder(numLabels, new float[numLabels], new float[numLabels * numLabels], new float[numLabels]);
+            var viterbiPath = Path.Combine(modelPath, "viterbi_calibration.json");
+            var calibration = ViterbiCalibration.Load(viterbiPath);
+            var biases = calibration.OperatingPoints.Default.Biases;
+
+            var viterbi = ViterbiDecoderBuilder.Build(labelInfo, biases);
 
             var path = viterbi.Decode(logits, tokens.Length);
 
-            Console.WriteLine("Tagging Complete:");
-            var reverseId2Label = config.Id2Label;
-
-            for (int i = 0; i < tokens.Length; i++)
+            var predictedLabelsByIndex = new Dictionary<int, int>();
+            for (int i = 0; i < path.Length; i++)
             {
-                string label = reverseId2Label.TryGetValue(path[i].ToString(), out var name) ? name : "O";
-                Console.WriteLine($"Token {tokens[i]}: {label}");
+                predictedLabelsByIndex[i] = path[i];
             }
 
-            Console.WriteLine("Redaction completed.");
+            var predictedTokenSpans = Spans.LabelsToSpans(predictedLabelsByIndex, labelInfo);
+
+            var (charStarts, charEnds) = Spans.TokenCharRangesForText(tokens, tokenizer.Tokenizer, text);
+
+            var predictedCharSpans = Spans.TokenSpansToCharSpans(predictedTokenSpans, charStarts, charEnds);
+
+            Console.WriteLine("\nDetected Spans:");
+            foreach (var span in predictedCharSpans)
+            {
+                string label = labelInfo.SpanClassNames.Length > span.LabelIdx ? labelInfo.SpanClassNames[span.LabelIdx] : $"label_{span.LabelIdx}";
+                string spanText = text.Substring(span.Start, span.End - span.Start);
+                Console.WriteLine($"- [{span.Start}, {span.End}] {label}: '{spanText}'");
+            }
+
+            string redactedText = text;
+            int offset = 0;
+            foreach (var span in predictedCharSpans)
+            {
+                string label = labelInfo.SpanClassNames.Length > span.LabelIdx ? labelInfo.SpanClassNames[span.LabelIdx] : $"label_{span.LabelIdx}";
+                string placeholder = $"<{label.ToUpper()}>";
+                int start = span.Start + offset;
+                int end = span.End + offset;
+
+                string before = redactedText.Substring(0, start);
+                string after = redactedText.Substring(end);
+
+                redactedText = before + placeholder + after;
+                offset += placeholder.Length - (span.End - span.Start);
+            }
+
+            Console.WriteLine($"\nRedacted text: {redactedText}");
         }
         catch (Exception ex)
         {

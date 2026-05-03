@@ -9,6 +9,8 @@ public class OpfTokenizer
 {
     private readonly Tokenizer _tokenizer;
 
+    public Tokenizer Tokenizer => _tokenizer;
+
     public OpfTokenizer(string directoryPath)
     {
         string tokenizerJsonPath = Path.Combine(directoryPath, "tokenizer.json");

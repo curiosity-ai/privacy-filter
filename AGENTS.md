@@ -18,8 +18,9 @@ Key Objectives:
    - Checkpoint/safetensors loading
    - Model architecture (Embeddings, Transformer Blocks, MoE, classification head)
    - Sequence decoding (Viterbi span extraction)
+   - Span processing matching token bounds offsets.
 2. **HuggingFace Downloader/Loader:** Logic to resolve checkpoints from `openai/privacy-filter`.
-3. **Console Tool:** (`Opf.Cli`) Equivalent functionality to `opf` Python CLI.
+3. **Console Tool:** (`Opf.Cli`) Equivalent functionality to `opf` Python CLI. Outputs replaced boundaries like `<PRIVATE_EMAIL>`.
 4. **Unit Tests:** (`Opf.Tests`) Validates accuracy and parity against Python baseline.
 
 ## Testing Parity
@@ -36,3 +37,5 @@ dotnet test Opf.Tests
 ## Hints for Future Steps
 - Safetensors binary parsing, Unquantizer logic, Viterbi calibration parsing, and end-to-end logic flow is now integrated and producing coherent tagging.
 - Buffer allocations inside the model hot paths have been refactored to use `ArrayPool<float>.Shared` to minimize garbage collection allocations. Further performance improvements could be made by passing continuous buffers and reducing overall loop iterations when slicing arrays, and refactoring to span bounds for output string slicing logic.
+- Span processing logic is implemented via `Spans.cs` mapping tokens into string byte boundaries using binary search. The `Opf.Cli` has been wired to correctly parse `viterbi_calibration.json` and replace matching regions with `<LABEL>` text.
+- Consider refactoring chunks into pipeline batch streams instead of reading a single argument string in `Program.cs`.
