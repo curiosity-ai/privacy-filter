@@ -35,4 +35,4 @@ dotnet test Opf.Tests
 
 ## Hints for Future Steps
 - Safetensors binary parsing, Unquantizer logic, Viterbi calibration parsing, and end-to-end logic flow is now integrated and producing coherent tagging.
-- Performance optimization is highly suggested. Look into replacing `new float[]` array initializations in inner loops (like `Forward` inside `TransformerBlock`, `GQA`, `MoE`, and `RMSNorm`) with `ArrayPool<float>.Shared.Rent`, `Span<float>`, and pre-allocated buffer caches to reduce high garbage collection limits resulting from repeated tensor instantiations across layers.
+- Buffer allocations inside the model hot paths have been refactored to use `ArrayPool<float>.Shared` to minimize garbage collection allocations. Further performance improvements could be made by passing continuous buffers and reducing overall loop iterations when slicing arrays, and refactoring to span bounds for output string slicing logic.

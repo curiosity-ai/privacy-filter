@@ -4,4 +4,5 @@
 - Successfully parsed `viterbi_calibration.json` transition biases to construct the exact Viterbi Decoder state matching the Python model.
 - Fixed RoPE parameter assignments to match configuration metadata directly.
 - The pipeline now correctly and automatically classifies sequences, fully connected end-to-end.
-- Next steps: Code cleanup, performance optimization, refactoring to span bounds for output string slicing logic, adding token buffer caching to avoid massive CPU load.
+- Applied performance optimization in GQA, MoE, TransformerBlock, and Transformer.
+- Next steps: Code cleanup, refactoring to span bounds for output string slicing logic, and further model parallelization.

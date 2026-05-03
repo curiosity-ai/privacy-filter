@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Linq;
 using Opf.Core.MathOps;
 
@@ -29,82 +30,104 @@ public class SparseMoE
 
     public void Forward(ReadOnlySpan<float> input, Span<float> output, int seqLen)
     {
+        var floatPool = ArrayPool<float>.Shared;
+        var intPool = ArrayPool<int>.Shared;
+
         // Clear output
         output.Clear();
 
         // 1. Compute routing logits (input * gateWeight)
-        float[] routingLogits = new float[seqLen * _numExperts];
-        TensorOps.Matmul(input, _gateWeight, routingLogits, seqLen, _hiddenSize, _numExperts);
+        float[] routingLogits = floatPool.Rent(seqLen * _numExperts);
 
-        // Process each token
-        for (int t = 0; t < seqLen; t++)
+        try
         {
-            // Get routing logits for current token
-            ReadOnlySpan<float> tokenLogits = routingLogits.AsSpan(t * _numExperts, _numExperts);
+            TensorOps.Matmul(input, _gateWeight, routingLogits, seqLen, _hiddenSize, _numExperts);
 
-            // 2. Select topK experts (without allocations)
-            float[] topKLogits = new float[_topK];
-            int[] expertIndices = new int[_topK];
+            float[] topKLogits = floatPool.Rent(_topK);
+            int[] expertIndices = intPool.Rent(_topK);
+            float[] hW1 = floatPool.Rent(_intermediateSize);
+            float[] hW3 = floatPool.Rent(_intermediateSize);
+            float[] hSwiglu = floatPool.Rent(_intermediateSize);
+            float[] expertOut = floatPool.Rent(_hiddenSize);
 
-            for (int k = 0; k < _topK; k++)
+            try
             {
-                topKLogits[k] = float.NegativeInfinity;
-                expertIndices[k] = -1;
-            }
-
-            for (int i = 0; i < _numExperts; i++)
-            {
-                float val = tokenLogits[i];
-                // Insert into topK array
-                for (int k = 0; k < _topK; k++)
+                // Process each token
+                for (int t = 0; t < seqLen; t++)
                 {
-                    if (val > topKLogits[k])
+                    // Get routing logits for current token
+                    ReadOnlySpan<float> tokenLogits = routingLogits.AsSpan(t * _numExperts, _numExperts);
+
+                    // 2. Select topK experts (without allocations)
+                    for (int k = 0; k < _topK; k++)
                     {
-                        // Shift down
-                        for (int j = _topK - 1; j > k; j--)
+                        topKLogits[k] = float.NegativeInfinity;
+                        expertIndices[k] = -1;
+                    }
+
+                    for (int i = 0; i < _numExperts; i++)
+                    {
+                        float val = tokenLogits[i];
+                        // Insert into topK array
+                        for (int k = 0; k < _topK; k++)
                         {
-                            topKLogits[j] = topKLogits[j - 1];
-                            expertIndices[j] = expertIndices[j - 1];
+                            if (val > topKLogits[k])
+                            {
+                                // Shift down
+                                for (int j = _topK - 1; j > k; j--)
+                                {
+                                    topKLogits[j] = topKLogits[j - 1];
+                                    expertIndices[j] = expertIndices[j - 1];
+                                }
+                                topKLogits[k] = val;
+                                expertIndices[k] = i;
+                                break;
+                            }
                         }
-                        topKLogits[k] = val;
-                        expertIndices[k] = i;
-                        break;
+                    }
+
+                    // Softmax over topK
+                    TensorOps.Softmax(topKLogits.AsSpan(0, _topK));
+
+                    // 3. For each token, run selected experts (SwiGLU) and accumulate
+                    for (int k = 0; k < _topK; k++)
+                    {
+                        int expertIdx = expertIndices[k];
+                        float weight = topKLogits[k];
+
+                        ReadOnlySpan<float> tokenInput = input.Slice(t * _hiddenSize, _hiddenSize);
+
+                        // MLP1 (W1, W3)
+                        TensorOps.Matmul(tokenInput, _expertW1[expertIdx], hW1, 1, _hiddenSize, _intermediateSize);
+                        TensorOps.Matmul(tokenInput, _expertW3[expertIdx], hW3, 1, _hiddenSize, _intermediateSize);
+
+                        // SwiGLU
+                        TensorOps.SwiGLU(hW1.AsSpan(0, _intermediateSize), hW3.AsSpan(0, _intermediateSize), hSwiglu.AsSpan(0, _intermediateSize));
+
+                        // MLP2 (W2)
+                        TensorOps.Matmul(hSwiglu.AsSpan(0, _intermediateSize), _expertW2[expertIdx], expertOut, 1, _intermediateSize, _hiddenSize);
+
+                        // Accumulate weighted output
+                        for (int d = 0; d < _hiddenSize; d++)
+                        {
+                            output[t * _hiddenSize + d] += expertOut[d] * weight;
+                        }
                     }
                 }
             }
-
-            // Softmax over topK
-            TensorOps.Softmax(topKLogits);
-
-            // 3. For each token, run selected experts (SwiGLU) and accumulate
-            for (int k = 0; k < _topK; k++)
+            finally
             {
-                int expertIdx = expertIndices[k];
-                float weight = topKLogits[k];
-
-                ReadOnlySpan<float> tokenInput = input.Slice(t * _hiddenSize, _hiddenSize);
-
-                // MLP1 (W1, W3)
-                float[] hW1 = new float[_intermediateSize];
-                float[] hW3 = new float[_intermediateSize];
-
-                TensorOps.Matmul(tokenInput, _expertW1[expertIdx], hW1, 1, _hiddenSize, _intermediateSize);
-                TensorOps.Matmul(tokenInput, _expertW3[expertIdx], hW3, 1, _hiddenSize, _intermediateSize);
-
-                // SwiGLU
-                float[] hSwiglu = new float[_intermediateSize];
-                TensorOps.SwiGLU(hW1, hW3, hSwiglu);
-
-                // MLP2 (W2)
-                float[] expertOut = new float[_hiddenSize];
-                TensorOps.Matmul(hSwiglu, _expertW2[expertIdx], expertOut, 1, _intermediateSize, _hiddenSize);
-
-                // Accumulate weighted output
-                for (int d = 0; d < _hiddenSize; d++)
-                {
-                    output[t * _hiddenSize + d] += expertOut[d] * weight;
-                }
+                floatPool.Return(topKLogits);
+                intPool.Return(expertIndices);
+                floatPool.Return(hW1);
+                floatPool.Return(hW3);
+                floatPool.Return(hSwiglu);
+                floatPool.Return(expertOut);
             }
+        }
+        finally
+        {
+            floatPool.Return(routingLogits);
         }
     }
 }
