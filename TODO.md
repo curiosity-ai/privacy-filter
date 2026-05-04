@@ -21,3 +21,4 @@
 - [x] Implement Console App logic (redact text, read from stdin, etc.).
 - [x] Connect Viterbi calibration biases in Console App decoding pass (read from `viterbi_calibration.json`).
 - [x] Apply performance optimizations for buffer allocation (replace `new float[]` with `ArrayPool<float>`).
+- [x] Refactor output spans bounding mapping logic (Span slice logic mappings in `Spans.cs`).

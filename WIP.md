@@ -5,4 +5,6 @@
 - Fixed RoPE parameter assignments to match configuration metadata directly.
 - The pipeline now correctly and automatically classifies sequences, fully connected end-to-end.
 - Applied performance optimization in GQA, MoE, TransformerBlock, and Transformer.
-- Next steps: Code cleanup, refactoring to span bounds for output string slicing logic, and further model parallelization.
+- Wrote logic to map decoded token indices back into Character-based arrays matching Python's `token_char_ranges_for_text` string manipulation mapping format (`Spans.cs`).
+- Integrated sequence boundaries and label tracking generation into the CLI pipeline so `dotnet run` yields an actual `<PRIVATE_DATA>` masked output.
+- Next steps: Handle streaming output inputs iteratively from stdout pipes. Apply `System.IO.Pipelines` or similar for large multi-line sequence chunks. Implement multi-thread parallel decoding batch sequences.
