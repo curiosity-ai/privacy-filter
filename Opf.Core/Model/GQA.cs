@@ -67,6 +67,14 @@ public class GroupedQueryAttention
 
                             for (int t2 = 0; t2 < seqLen; t2++)
                             {
+                                // OPF Bidirectional Context Mask: left_context=128, right_context=128
+                                // This means token `t` can only attend to `t2` if (t - 128) <= t2 <= (t + 128)
+                                if (t2 < t - 128 || t2 > t + 128)
+                                {
+                                    scores[t2] = float.NegativeInfinity;
+                                    continue;
+                                }
+
                                 float score = 0;
                                 for (int d = 0; d < _headDim; d++)
                                 {

@@ -65,11 +65,17 @@ public static class TensorOps
     public static void SwiGLU(Span<float> x, Span<float> y, Span<float> output)
     {
         int length = x.Length;
+        float alpha = 1.702f;
+        float limit = 7.0f;
         for (int i = 0; i < length; i++)
         {
-            float valX = x[i];
-            float siluX = valX / (1.0f + MathF.Exp(-valX));
-            output[i] = siluX * y[i];
+            float valX = x[i] > limit ? limit : x[i];
+            float valY = y[i];
+            if (valY > limit) valY = limit;
+            if (valY < -limit) valY = -limit;
+
+            float siluX = valX / (1.0f + MathF.Exp(-alpha * valX));
+            output[i] = siluX * (valY + 1.0f);
         }
     }
 }

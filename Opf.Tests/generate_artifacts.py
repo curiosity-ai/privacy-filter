@@ -142,9 +142,13 @@ def generate_moe_data():
             h1 = torch.matmul(token_in, expert_w1[expert_idx])
             h3 = torch.matmul(token_in, expert_w3[expert_idx])
 
-            # SwiGLU: SiLU(x) = x * sigmoid(x) -> SiLU(h1) * h3
-            silu_h1 = F.silu(h1)
-            h_swiglu = silu_h1 * h3
+            # OPF SwiGLU: x * sigmoid(1.702 * x) * (y + 1)
+            # We apply limit clamping logic explicitly:
+            limit = 7.0
+            h1_clamp = h1.clamp(min=None, max=limit)
+            h3_clamp = h3.clamp(min=-limit, max=limit)
+            silu_h1 = h1_clamp * torch.sigmoid(1.702 * h1_clamp)
+            h_swiglu = silu_h1 * (h3_clamp + 1.0)
 
             h_out = torch.matmul(h_swiglu, expert_w2[expert_idx])
 
